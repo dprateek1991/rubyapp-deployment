@@ -21,16 +21,50 @@ http://127.0.0.1/healthcheck
 
 ### Deploy the Helm Chart
 
+Start Minikube Cluster
+
+```
+minikube start
+minikube stop
+```
+
+Create ruby namespace
+
+```
+kubectl create ns ruby-app
+```
+
+Create docker secret
+
+```
+kubectl -n ruby-app create secret docker-registry docker-login --docker-server=https://index.docker.io/v1/ --docker-username= --docker-password= --docker-email=
+```
+
 Go to helm-chart folder and run 
 
 ```
 make install
 ```
 
+Check application pods
+```
+kubectl -n ruby-app get pods
+NAME                       READY   STATUS    RESTARTS   AGE
+ruby-app-5f986899f-f7h4h   1/1     Running   0          27s
+ruby-app-5f986899f-j9xzg   1/1     Running   0          27s
+```
+
 In a separate terminal, start minikube tunnel
 
 ```
 minikube tunnel
+```
+
+Check the K8s service
+```
+kubectl -n ruby-app get svc
+NAME       TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+ruby-app   LoadBalancer   10.101.125.53   127.0.0.1     80:30879/TCP   79s
 ```
 
 Check your service at 
@@ -61,4 +95,10 @@ Get password as
 
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+### Run Argocd application
+
+```
+kubectl apply -f ruby-app.yaml
 ```
