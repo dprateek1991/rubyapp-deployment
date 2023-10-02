@@ -1,0 +1,7 @@
+name: ruby-app
+
+replicas: 1
+
+image:
+  name: datawavelabs/ruby-app
+  tag: latest

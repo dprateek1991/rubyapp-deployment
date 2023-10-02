@@ -1,0 +1,51 @@
+name: Deploy ArgoCD Application
+
+on: 
+  push:
+    paths:
+    - 'argocd-app/**'
+
+env:
+  REGION: ap-southeast-1
+  TEST_EKS: test-eks-cluster
+
+jobs:
+  changes:
+    name: Check for Changes in Subfolder
+    runs-on: test-eks-cluster
+    defaults:
+      run:
+        working-directory: argocd-app
+    outputs:
+      test_eks: ${{ steps.filter.outputs.test_eks }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          test_eks:
+            - 'argocd-app/**'
+
+  deploy-argocd-app-test:
+    name: Deploy ArgoCD app to Test
+    needs: changes
+    if: ${{ needs.changes.outputs.test_eks == 'true' && github.ref == 'refs/heads/main'}}
+    runs-on: test-eks-cluster
+    defaults:
+      run:
+        working-directory: argocd-app
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install packages 
+      run: |
+        sudo apt-get update && sudo apt-get install -y curl jq python3-pip
+        pip install awscli
+        curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        sudo cp ./kubectl /bin/kubectl
+        aws eks --region ${{ env.REGION }} update-kubeconfig --name ${{ env.TEST_EKS }}
+    - name: Deploy Applications
+      run: for i in *.yaml; do /bin/kubectl apply -f $i; done
