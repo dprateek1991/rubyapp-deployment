@@ -1,14 +1,15 @@
-### Build the docker image
+### Build and Push the docker image
 
 ```
 docker build -t datawavelabs/ruby-app:latest .
+docker push -t datawavelabs/ruby-app:latest
 ```
 
 ### Run the ruby code on local or as a container
 
 ```
 ruby web_server.rb
-docker run -p 80:80 datawavelabs/ruby-app
+docker run -p 80:80 datawavelabs/ruby-app:latest
 ```
 
 ### Test the code 
@@ -26,7 +27,7 @@ Go to helm-chart folder and run
 make install
 ```
 
-In a separate terminal, start minikube tunnel as 
+In a separate terminal, start minikube tunnel
 
 ```
 minikube tunnel
